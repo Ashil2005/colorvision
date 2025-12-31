@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <title>CVD Diagnostic</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+
+<body>
+  <div class="container">
+    <header>
+      <h1>VisionAI</h1>
+      <p>CVD Diagnostic & Corection</p>
+    </header>
+
+    <main id="app">
+      <!-- Welcome Screen -->
+      <section id="welcome" class="screen">
+        <div id="status-badge" class="hidden">Mode: <span id="mode-text">---</span></div>
+
+        <h2>Manual Color Selection</h2>
+        <div class="manual-selector">
+          <label class="radio-item"><input type="radio" name="cvd-manual" value="Normal" checked> Normal</label>
+          <label class="radio-item"><input type="radio" name="cvd-manual" value="Protanopia"> Protanopia</label>
+          <label class="radio-item"><input type="radio" name="cvd-manual" value="Protanomaly"> Protanomaly</label>
+          <label class="radio-item"><input type="radio" name="cvd-manual" value="Deuteranopia"> Deuteranopia</label>
+          <label class="radio-item"><input type="radio" name="cvd-manual" value="Deuteranomaly"> Deuteranomaly</label>
+          <label class="radio-item"><input type="radio" name="cvd-manual" value="Tritanopia"> Tritanopia</label>
+          <label class="radio-item"><input type="radio" name="cvd-manual" value="Tritanomaly"> Tritanomaly</label>
+        </div>
+        <button id="apply-manual-btn" class="secondary-btn">Apply Selection</button>
+
+        <div class="divider"><span>OR</span></div>
+
+        <h2>AI-Assisted Diagnostic</h2>
+        <p>New to CVD? Let our diagnostic engine detect your type and severity.</p>
+        <button id="start-btn" class="primary-btn">Start Diagnosis</button>
+      </section>
+
+      <!-- Test Screen -->
+      <section id="test-screen" class="screen hidden">
+        <div class="progress-bar">
+          <div id="progress" style="width: 0%"></div>
+        </div>
+        <div class="plate-container">
+          <!-- Image will be injected here -->
+          <div id="plate-placeholder" class="ishihara-plate">
+            <!-- Placeholder for SVG/Image -->
+            <span id="plate-name">Loading...</span>
+          </div>
+        </div>
+        <div class="input-area">
+          <input type="text" id="answer-input" placeholder="What number do you see?" autofocus>
+          <button id="next-btn" class="secondary-btn">Next</button>
+        </div>
+      </section>
+
+      <!-- Result Screen -->
+      <section id="result-screen" class="screen hidden">
+        <div class="status-row">
+          <h2>Diagnostic Result</h2>
+          <div id="active-source" class="badge">---</div>
+        </div>
+        <div class="result-card">
+          <p>Type: <strong id="res-type">---</strong></p>
+          <p>Severity: <strong id="res-severity">---</strong></p>
+          <div class="confidence-meter">
+            <small>Confidence Score</small>
+            <div class="meter-bg">
+              <div id="conf-bar" style="width: 0%"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="control-card">
+          <div class="flex-row">
+            <span>Enable Correction</span>
+            <label class="switch">
+              <input type="checkbox" id="enable-toggle">
+              <span class="slider-round"></span>
+            </label>
+          </div>
+          <div class="slider-group">
+            <div class="flex-row">
+              <small>Strength</small>
+              <small id="strength-val">50%</small>
+            </div>
+            <input type="range" id="severity-override" min="0" max="100" value="50">
+          </div>
+        </div>
+
+        <button id="reset-btn" class="text-btn">Retest Vision</button>
+      </section>
+    </main>
+  </div>
+  <script type="module" src="popup.js"></script>
+</body>
+
+</html>
