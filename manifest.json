@@ -25,7 +25,10 @@
     "web_accessible_resources": [
         {
             "resources": [
-                "filters/*.js"
+                "filters/*.js",
+                "assets/plates/*.jpg",
+                "tests/ishihara.json",
+                "tests/farnsworth.json"
             ],
             "matches": [
                 "<all_urls>"

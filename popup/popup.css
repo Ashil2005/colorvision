@@ -61,13 +61,11 @@ p {
 
 .ishihara-plate {
   width: 100%;
-  aspect-ratio: 1;
-  background: var(--card);
-  border-radius: 1rem;
+  height: 230px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px dashed #334155;
+  overflow: hidden;
 }
 
 .input-area {
@@ -265,4 +263,12 @@ input[type=range]::-webkit-slider-thumb {
   text-decoration: underline;
   align-self: center;
   margin-top: 0.5rem;
+}
+
+.ishihara-img {
+  max-width: 100%;
+  max-height: 220px;
+  object-fit: contain;
+  display: block;
+  margin: 0 auto;
 }
