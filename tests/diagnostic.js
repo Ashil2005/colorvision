@@ -22,7 +22,8 @@ const elements = {
     closeBtn: document.getElementById('close-btn'),
     backBtn: document.getElementById('back-to-selection-btn'),
     startIshiharaBtn: document.getElementById('start-ishihara-btn'),
-    testIshiharaRadio: document.getElementById('test-ishihara')
+    testIshiharaRadio: document.getElementById('test-ishihara'),
+    aiExplanation: document.getElementById('ai-explanation')
 };
 
 async function init() {
@@ -183,18 +184,74 @@ function showResult(result) {
         source: "diagnostic"
     };
 
-    chrome.storage.local.set({ cvdSettings: currentSettings });
-
     elements.resType.innerText = result.type;
     elements.resSeverity.innerText = result.severityLabel || 
         (result.severityScore > 0.7 ? 'Strong' : 
          result.severityScore > 0.35 ? 'Moderate' : 'Mild');
 
     console.log('[VisionAI] Test completed:', currentSettings);
+    
+    // Only try fetching if the test indicates some sort of non-normal type or there's severity
+    if (result.type !== 'Normal' || (result.severityScore !== undefined)) {
+        fetchAiAnalysis(result, currentSettings);
+    } else {
+        // Just save to storage immediately if no AI analysis needed
+        chrome.storage.local.set({ cvdSettings: currentSettings });
+        if (elements.aiExplanation) {
+            elements.aiExplanation.innerText = "No AI analysis required for Normal vision.";
+        }
+    }
+}
 
-    setTimeout(() => {
-        window.close();
-    }, 2000);
+async function fetchAiAnalysis(result, currentSettings) {
+    if (elements.aiExplanation) {
+        elements.aiExplanation.innerText = 'Analyzing results with AI...';
+    }
+
+    try {
+        const payload = {
+            likelyType: result.type,
+            confidence: Math.round(result.confidence * 100),
+            severity: result.severityLabel || (result.severityScore > 0.5 ? "Strong" : "Mild"),
+            testQuality: "Acceptable"
+        };
+        
+        if (result.responses) {
+            payload.totalResponses = result.responses.length;
+        }
+
+        const response = await fetch('http://localhost:3000/analyze-result', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        const data = await response.json();
+        
+        let explanationText = "";
+        if (data.success && data.analysis) {
+            explanationText = data.analysis;
+        } else {
+            throw new Error(data.error || 'AI analysis failed');
+        }
+
+        if (elements.aiExplanation) {
+            elements.aiExplanation.innerText = explanationText;
+        }
+        
+        currentSettings.aiExplanation = explanationText;
+
+    } catch (error) {
+        console.error('[VisionAI] Failed to fetch AI analysis:', error);
+        const fallbackText = `Based on your responses, the screening indicates a ${result.type} (Confidence: ${Math.round(result.confidence * 100)}%). This is a preliminary assessment only, not a clinical diagnosis. Please consult an eye care professional for confirmation.`;
+        if (elements.aiExplanation) {
+            elements.aiExplanation.innerText = fallbackText;
+        }
+        currentSettings.aiExplanation = fallbackText;
+    } finally {
+        // Save to storage whether it succeeded or failed so popup.js can use it
+        chrome.storage.local.set({ cvdSettings: currentSettings });
+    }
 }
 
 // Event listeners
