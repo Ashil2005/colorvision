@@ -1,9 +1,15 @@
 import { TestEngine } from './testEngine.js';
+import { correctOrder } from './d15Config.js';
+import { renderD15Board, createShuffledD15Order } from './d15Board.js';
+import { evaluateD15 } from './d15Engine.js';
 
 let engine;
 let allPlates = [];
 let ishiharaPlates = [];
 let currentTestType = null;
+let d15Order = [];
+
+const searchParams = new URLSearchParams(window.location.search);
 
 const elements = {
     selectionScreen: document.getElementById('selection-screen'),
@@ -13,7 +19,10 @@ const elements = {
     nextBtn: document.getElementById('next-btn'),
     answerInput: document.getElementById('answer-input'),
     plateName: document.getElementById('plate-name'),
+    d15Description: document.getElementById('test-description'),
+    instructionText: document.getElementById('instruction-text'),
     plateContainer: document.getElementById('plate-placeholder'),
+    ishiharaPlateContainer: document.getElementById('ishihara-plate'),
     progress: document.getElementById('progress'),
     progressCount: document.getElementById('progress-count'),
     progressTotal: document.getElementById('progress-total'),
@@ -21,10 +30,85 @@ const elements = {
     resSeverity: document.getElementById('res-severity'),
     closeBtn: document.getElementById('close-btn'),
     backBtn: document.getElementById('back-to-selection-btn'),
+    reshuffleBtn: document.getElementById('reshuffle-btn'),
     startIshiharaBtn: document.getElementById('start-ishihara-btn'),
-    testIshiharaRadio: document.getElementById('test-ishihara'),
+    startD15Btn: document.getElementById('start-d15-btn'),
     aiExplanation: document.getElementById('ai-explanation')
 };
+
+function shouldEnableFilter(type) {
+    return type === 'Protan' || type === 'Deutan' || type === 'Tritan' || type === 'Red-Green Deficient';
+}
+
+function applyPlateContainerMode(testType) {
+    if (!elements.plateContainer) return;
+    
+    // CSS now handles styling, just manage visibility
+    const capsCard = elements.plateContainer.closest('.caps-card');
+    const ishiharaWrapper = elements.testScreen?.querySelector('.ishihara-wrapper');
+    
+    if (testType === 'farnsworth') {
+        if (capsCard) capsCard.style.display = 'block';
+        if (ishiharaWrapper) ishiharaWrapper.style.display = 'none';
+        return;
+    }
+
+    if (capsCard) capsCard.style.display = 'none';
+    if (ishiharaWrapper) ishiharaWrapper.style.display = 'block';
+}
+
+function setTestInteractionMode(testType) {
+    applyPlateContainerMode(testType);
+
+    if (!elements.answerInput || !elements.nextBtn) return;
+
+    if (testType === 'farnsworth') {
+        elements.answerInput.classList.add('hidden');
+        elements.answerInput.style.display = 'none';
+        elements.nextBtn.innerText = 'Submit Order';
+        if (elements.reshuffleBtn) {
+            elements.reshuffleBtn.style.display = 'inline-block';
+        }
+        return;
+    }
+
+    elements.answerInput.classList.remove('hidden');
+    elements.answerInput.style.display = '';
+    elements.answerInput.placeholder = 'Your answer...';
+    elements.nextBtn.innerText = 'Next';
+    if (elements.reshuffleBtn) {
+        elements.reshuffleBtn.style.display = 'none';
+    }
+}
+
+function setProgress(current, total) {
+    if (elements.progress) {
+        const percent = total > 0 ? (current / total) * 100 : 0;
+        elements.progress.style.width = `${percent}%`;
+    }
+    if (elements.progressCount) {
+        elements.progressCount.innerText = String(current);
+    }
+    if (elements.progressTotal) {
+        elements.progressTotal.innerText = String(total);
+    }
+}
+
+function mapD15Result(result) {
+    const typeMap = {
+        normal: 'Normal',
+        protan: 'Protan',
+        deutan: 'Deutan',
+        tritan: 'Tritan',
+        unspecified: 'Unspecified'
+    };
+
+    return {
+        ...result,
+        type: typeMap[result.type] || 'Unspecified',
+        testType: 'farnsworth'
+    };
+}
 
 async function init() {
     try {
@@ -32,142 +116,210 @@ async function init() {
         if (!ishiharaRes.ok) {
             throw new Error(`Failed to load ishihara.json: ${ishiharaRes.status} ${ishiharaRes.statusText}`);
         }
-        ishiharaPlates = await ishiharaRes.json();
 
-        console.log(`[VisionAI] Loaded ${ishiharaPlates.length} Ishihara plates`);
+        const loadedPlates = await ishiharaRes.json();
+        ishiharaPlates = Array.isArray(loadedPlates)
+            ? loadedPlates.filter((plate) => plate && plate.available !== false && plate.image)
+            : [];
 
-        // Setup button listeners with debugging
-        console.log('[VisionAI] Setting up button listeners...');
-        console.log('[VisionAI] startIshiharaBtn exists?', !!elements.startIshiharaBtn);
+        if (ishiharaPlates.length === 0) {
+            throw new Error('No usable Ishihara plates were found.');
+        }
 
         if (elements.startIshiharaBtn) {
-            elements.startIshiharaBtn.onclick = (e) => {
-                e.preventDefault();
-                console.log('[VisionAI] Ishihara button clicked');
+            elements.startIshiharaBtn.onclick = (event) => {
+                event.preventDefault();
                 startSelectedTest('ishihara');
             };
-        } else {
-            console.error('[VisionAI] startIshiharaBtn not found!');
         }
-        
+
+        if (elements.startD15Btn) {
+            elements.startD15Btn.onclick = (event) => {
+                event.preventDefault();
+                startSelectedTest('farnsworth');
+            };
+        }
+
         if (elements.closeBtn) {
             elements.closeBtn.onclick = () => window.close();
         }
 
-        // Setup back button
         if (elements.backBtn) {
-            elements.backBtn.onclick = () => {
-                console.log('[VisionAI] Back button clicked, returning to selection screen');
-                showSelectionScreen();
+            elements.backBtn.onclick = () => showSelectionScreen();
+        }
+
+        if (elements.reshuffleBtn) {
+            elements.reshuffleBtn.onclick = (event) => {
+                event.preventDefault();
+                if (currentTestType === 'farnsworth') {
+                    startD15Test();
+                }
             };
         }
 
-        // Always show selection screen initially
         showSelectionScreen();
-        console.log('[VisionAI] Diagnostic window ready - showing selection screen');
 
+        const preferredTest = searchParams.get('test');
+        if (preferredTest === 'ishihara' || preferredTest === 'farnsworth') {
+            startSelectedTest(preferredTest);
+        }
     } catch (error) {
         console.error('[VisionAI] Failed to initialize diagnostic:', error);
         if (elements.plateName) {
-            elements.plateName.innerText = 'Error: Could not load test plates. ' + error.message;
+            elements.plateName.innerText = `Error: Could not load test plates. ${error.message}`;
         }
-        if (elements.nextBtn) elements.nextBtn.disabled = true;
+        if (elements.nextBtn) {
+            elements.nextBtn.disabled = true;
+        }
         throw error;
     }
 }
 
 function showSelectionScreen() {
+    currentTestType = null;
     if (elements.selectionScreen) elements.selectionScreen.classList.remove('hidden');
     if (elements.testScreen) elements.testScreen.classList.add('hidden');
     if (elements.resultScreen) elements.resultScreen.classList.add('hidden');
-    console.log('[VisionAI] Showing selection screen');
+    setTestInteractionMode('ishihara');
+    setProgress(0, 0);
 }
 
 function startSelectedTest(testType) {
     currentTestType = testType;
-    
-    // Prepare plates based on selected test
-    if (testType === 'ishihara') {
-        allPlates = [...ishiharaPlates];
-        elements.testTitle.innerText = 'Ishihara Vision Test';
-    }
 
-    engine = new TestEngine(allPlates);
-    
-    // Show test screen and hide selection
     if (elements.selectionScreen) elements.selectionScreen.classList.add('hidden');
     if (elements.testScreen) elements.testScreen.classList.remove('hidden');
     if (elements.resultScreen) elements.resultScreen.classList.add('hidden');
-    
-    console.log(`[VisionAI] Starting ${testType} test with ${allPlates.length} plates`);
-    
-    // Start the test
+
+    if (testType === 'farnsworth') {
+        startD15Test();
+        return;
+    }
+
+    startIshiharaTest();
+}
+
+function startD15Test() {
+    d15Order = createShuffledD15Order();
+    if (elements.testTitle) {
+        elements.testTitle.innerText = 'Farnsworth D-15 Test';
+    }
+
+    if (elements.testScreen) {
+        elements.testScreen.classList.add('d15-fullscreen', 'fullscreen-wrapper');
+    }
+    if (elements.d15Description) {
+        elements.d15Description.style.display = 'block';
+    }
+    if (elements.plateContainer) {
+        elements.plateContainer.classList.add('caps-container');
+    }
+    if (elements.inputArea) {
+        elements.inputArea.classList.add('test-actions');
+    }
+
+    setTestInteractionMode('farnsworth');
+    renderD15Test();
+}
+
+function startIshiharaTest() {
+    if (elements.testScreen) {
+        elements.testScreen.classList.remove('d15-fullscreen', 'fullscreen-wrapper');
+    }
+    if (elements.d15Description) {
+        elements.d15Description.style.display = 'none';
+    }
+    if (elements.plateContainer) {
+        elements.plateContainer.classList.remove('caps-container');
+    }
+    if (elements.inputArea) {
+        elements.inputArea.classList.remove('test-actions');
+    }
+
+    allPlates = [...ishiharaPlates];
+    if (elements.testTitle) {
+        elements.testTitle.innerText = 'Ishihara Vision Test';
+    }
+
+    setTestInteractionMode('ishihara');
+    engine = new TestEngine(allPlates);
     const plate = engine.startTest();
     renderPlate(plate);
 }
 
 function renderPlate(plate) {
-    elements.plateName.innerText = plate.name + " (" + plate.category + ")";
+    if (!plate) return;
 
+    elements.plateName.innerText = `${plate.name} (${plate.category})`;
     renderIshihara(plate);
 
-    elements.answerInput.value = '';
-    elements.answerInput.focus();
+    if (elements.answerInput) {
+        elements.answerInput.value = '';
+        elements.answerInput.focus();
+    }
 
-    const progressValue = (engine.currentPlateIndex / allPlates.length) * 100;
-    elements.progress.style.width = progressValue + '%';
-    
-    // Update progress counter
-    if (elements.progressCount) {
-        elements.progressCount.innerText = engine.currentPlateIndex + 1;
-    }
-    if (elements.progressTotal) {
-        elements.progressTotal.innerText = allPlates.length;
-    }
+    setProgress(engine.currentPlateIndex + 1, allPlates.length);
 }
 
 function renderIshihara(plate) {
-    elements.plateContainer.innerHTML = '';
+    if (!elements.ishiharaPlateContainer) return;
     
+    elements.ishiharaPlateContainer.innerHTML = '';
+
     const img = document.createElement('img');
     img.alt = plate.name;
-    img.className = "ishihara-img";
-    
-    img.onload = () => {
-        console.log(`[VisionAI] Image loaded: ${plate.image}`);
-    };
-    
+    img.className = 'ishihara-img';
+
     img.onerror = () => {
-        console.error(`[VisionAI] Failed to load image: ${plate.image}`);
-        elements.plateContainer.innerHTML = '';
-        
+        elements.ishiharaPlateContainer.innerHTML = '';
+
         const errorDiv = document.createElement('div');
         errorDiv.className = 'image-placeholder';
-        errorDiv.style.width = '400px';
-        errorDiv.style.height = '400px';
+        errorDiv.style.width = '100%';
+        errorDiv.style.height = '100%';
         errorDiv.style.marginLeft = 'auto';
         errorDiv.style.marginRight = 'auto';
         errorDiv.style.lineHeight = '1.5';
-        errorDiv.innerText = `❌ Image not found\n${plate.image}\n\nPlease verify the image file exists.`;
-        elements.plateContainer.appendChild(errorDiv);
+        errorDiv.innerText = `Image not found\n${plate.image}\n\nPlease verify the image file exists.`;
+        elements.ishiharaPlateContainer.appendChild(errorDiv);
     };
-    
-    const imageUrl = chrome.runtime.getURL(plate.image);
-    console.log(`[VisionAI] Loading image from: ${imageUrl}`);
-    img.src = imageUrl;
-    
-    elements.plateContainer.appendChild(img);
+
+    img.src = chrome.runtime.getURL(plate.image);
+    elements.ishiharaPlateContainer.appendChild(img);
+}
+
+function renderD15Test() {
+    if (elements.instructionText) {
+        elements.instructionText.innerText = 'Drag the caps into a smooth color progression from left to right.';
+    }
+
+    renderD15Board(elements.plateContainer, d15Order, {
+        onReorder(nextOrder) {
+            d15Order = nextOrder;
+            renderD15Test();
+        }
+    });
+
+    setProgress(correctOrder.length, correctOrder.length);
 }
 
 function submitAnswer() {
-    const ans = elements.answerInput.value.trim();
-    const next = engine.submitAnswer(ans);
+    if (currentTestType === 'farnsworth') {
+        showResult(mapD15Result(evaluateD15(d15Order, correctOrder)));
+        return;
+    }
+
+    if (!engine) return;
+
+    const answer = elements.answerInput ? elements.answerInput.value.trim() : '';
+    const next = engine.submitAnswer(answer);
 
     if (next.status === 'next') {
         renderPlate(next.plate);
-    } else {
-        showResult(next.result);
+        return;
     }
+
+    showResult({ ...next.result, testType: 'ishihara' });
 }
 
 function showResult(result) {
@@ -179,86 +331,52 @@ function showResult(result) {
         severityScore: result.severityScore,
         confidence: result.confidence,
         severityLabel: result.severityLabel,
-        enabled: true,
+        enabled: shouldEnableFilter(result.type),
         overrideSeverity: null,
-        source: "diagnostic"
+        source: 'diagnostic',
+        testType: result.testType || currentTestType,
+        aiExplanation: ''
     };
 
     elements.resType.innerText = result.type;
-    elements.resSeverity.innerText = result.severityLabel || 
-        (result.severityScore > 0.7 ? 'Strong' : 
-         result.severityScore > 0.35 ? 'Moderate' : 'Mild');
+    elements.resSeverity.innerText = result.severityLabel || 'None';
 
-    console.log('[VisionAI] Test completed:', currentSettings);
-    
-    // Only try fetching if the test indicates some sort of non-normal type or there's severity
-    if (result.type !== 'Normal' || (result.severityScore !== undefined)) {
-        fetchAiAnalysis(result, currentSettings);
-    } else {
-        // Just save to storage immediately if no AI analysis needed
-        chrome.storage.local.set({ cvdSettings: currentSettings });
-        if (elements.aiExplanation) {
-            elements.aiExplanation.innerText = "No AI analysis required for Normal vision.";
-        }
-    }
+    fetchAiAnalysis(result, currentSettings);
 }
 
-async function fetchAiAnalysis(result, currentSettings) {
+function generateAIExplanation(result) {
+    if ((result.type || 'Normal') === 'Normal') {
+        return 'Your responses indicate a normal arrangement pattern. No strong signs of color vision deficiency were detected in this screening.';
+    }
+
+    if ((result.type || '') === 'Borderline' || (result.type || '') === 'Unspecified') {
+        return 'Your responses were inconclusive. The screening found some inconsistent color choices, but not enough evidence to confidently assign a specific deficiency pattern.';
+    }
+
+    return `The test results suggest ${result.type} color vision deficiency with ${result.severityLabel || 'Mild'} severity. This means certain color ranges may be harder to distinguish. Consider consulting a specialist for confirmation.`;
+}
+
+function fetchAiAnalysis(result, currentSettings) {
+    const explanationText = generateAIExplanation(result);
+
     if (elements.aiExplanation) {
-        elements.aiExplanation.innerText = 'Analyzing results with AI...';
+        elements.aiExplanation.innerText = explanationText;
     }
 
-    try {
-        const payload = {
-            likelyType: result.type,
-            confidence: Math.round(result.confidence * 100),
-            severity: result.severityLabel || (result.severityScore > 0.5 ? "Strong" : "Mild"),
-            testQuality: "Acceptable"
-        };
-        
-        if (result.responses) {
-            payload.totalResponses = result.responses.length;
-        }
-
-        const response = await fetch('http://localhost:3000/analyze-result', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-
-        const data = await response.json();
-        
-        let explanationText = "";
-        if (data.success && data.analysis) {
-            explanationText = data.analysis;
-        } else {
-            throw new Error(data.error || 'AI analysis failed');
-        }
-
-        if (elements.aiExplanation) {
-            elements.aiExplanation.innerText = explanationText;
-        }
-        
-        currentSettings.aiExplanation = explanationText;
-
-    } catch (error) {
-        console.error('[VisionAI] Failed to fetch AI analysis:', error);
-        const fallbackText = `Based on your responses, the screening indicates a ${result.type} (Confidence: ${Math.round(result.confidence * 100)}%). This is a preliminary assessment only, not a clinical diagnosis. Please consult an eye care professional for confirmation.`;
-        if (elements.aiExplanation) {
-            elements.aiExplanation.innerText = fallbackText;
-        }
-        currentSettings.aiExplanation = fallbackText;
-    } finally {
-        // Save to storage whether it succeeded or failed so popup.js can use it
-        chrome.storage.local.set({ cvdSettings: currentSettings });
-    }
+    currentSettings.aiExplanation = explanationText;
+    chrome.storage.local.set({ cvdSettings: currentSettings });
 }
 
-// Event listeners
-elements.nextBtn.onclick = submitAnswer;
+if (elements.nextBtn) {
+    elements.nextBtn.onclick = submitAnswer;
+}
 
-elements.answerInput.onkeydown = (e) => {
-    if (e.key === 'Enter') submitAnswer();
-};
+if (elements.answerInput) {
+    elements.answerInput.onkeydown = (event) => {
+        if (event.key === 'Enter' && currentTestType !== 'farnsworth') {
+            submitAnswer();
+        }
+    };
+}
 
 init();

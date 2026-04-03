@@ -24,6 +24,12 @@ export const getMatrixForCVD = (type, severity) => {
             0, 0.3, 0.7, 0, 0,
             0, 0, 0, 1, 0
         ],
+        'Red-Green Deficient': [
+            0.596, 0.404, 0, 0, 0,
+            0.629, 0.371, 0, 0, 0,
+            0, 0.271, 0.729, 0, 0,
+            0, 0, 0, 1, 0
+        ],
         Tritan: [
             0.95, 0.05, 0, 0, 0,
             0, 0.433, 0.567, 0, 0,
@@ -36,7 +42,6 @@ export const getMatrixForCVD = (type, severity) => {
 
     const target = fullMatrices[type];
 
-    // Linear interpolation: Matrix = Identity * (1 - severity) + Target * severity
     const adaptiveMatrix = identity.map((val, i) => {
         return val * (1 - severity) + target[i] * severity;
     });

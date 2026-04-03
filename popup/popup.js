@@ -2,8 +2,8 @@ import { TestEngine } from '../tests/testEngine.js';
 
 let engine;
 let plates = [];
+let currentTestType = 'ishihara';
 
-// DOM Elements
 const screens = {
     welcome: document.getElementById('welcome'),
     test: document.getElementById('test-screen'),
@@ -15,6 +15,7 @@ const elements = {
     nextBtn: document.getElementById('next-btn'),
     answerInput: document.getElementById('answer-input'),
     plateName: document.getElementById('plate-name'),
+    platePlaceholder: document.getElementById('plate-placeholder'),
     progress: document.getElementById('progress'),
     resType: document.getElementById('res-type'),
     resSeverity: document.getElementById('res-severity'),
@@ -28,7 +29,9 @@ const elements = {
     modeText: document.getElementById('mode-text'),
     activeSource: document.getElementById('active-source'),
     fullScreenBtn: document.getElementById('full-screen-btn'),
-    aiExplanation: document.getElementById('ai-explanation')
+    aiExplanation: document.getElementById('ai-explanation'),
+    testIshiharaBtn: document.getElementById('test-ishihara-btn'),
+    testD15Btn: document.getElementById('test-d15-btn')
 };
 
 let currentSettings = {
@@ -53,6 +56,10 @@ const MANUAL_MAPPING = {
     Achromatopsia: { type: 'Achromatopsia', severity: 1.0 }
 };
 
+function shouldEnableFilter(type) {
+    return type === 'Protan' || type === 'Deutan' || type === 'Tritan' || type === 'Red-Green Deficient';
+}
+
 async function init() {
     try {
         const ishiharaRes = await fetch(chrome.runtime.getURL('tests/ishihara.json'));
@@ -61,9 +68,14 @@ async function init() {
         }
 
         const ishiPlates = await ishiharaRes.json();
-        plates = [...ishiPlates];
+        plates = Array.isArray(ishiPlates)
+            ? ishiPlates.filter((plate) => plate && plate.available !== false && plate.image)
+            : [];
 
-        console.log(`[VisionAI] Popup initialized with ${plates.length} test plates`);
+        if (plates.length === 0) {
+            throw new Error('No usable Ishihara plates were found.');
+        }
+
         engine = new TestEngine(plates);
     } catch (error) {
         console.error('[VisionAI] Popup initialization failed:', error);
@@ -82,6 +94,7 @@ async function init() {
                 ...currentSettings,
                 ...res.cvdSettings
             };
+            currentTestType = currentSettings.testType || currentTestType;
             updateStatusDisplay();
         }
     });
@@ -92,6 +105,7 @@ async function init() {
                 ...currentSettings,
                 ...changes.cvdSettings.newValue
             };
+            currentTestType = currentSettings.testType || currentTestType;
             updateStatusDisplay();
             showResult(currentSettings, false);
         }
@@ -99,17 +113,25 @@ async function init() {
 
     if (elements.startBtn) {
         elements.startBtn.onclick = () => {
-            if (plates && plates.length > 0) {
+            currentTestType = 'ishihara';
+            if (plates.length > 0) {
                 showScreen('test', startTest);
-            } else {
-                console.error('[VisionAI] Cannot start test - no plates loaded');
             }
         };
     }
 
-    const testIshiharaBtn = document.getElementById('test-ishihara-btn');
-    if (testIshiharaBtn) {
-        testIshiharaBtn.onclick = () => openFullScreenTestWithType('ishihara');
+    if (elements.testIshiharaBtn) {
+        elements.testIshiharaBtn.onclick = () => {
+            currentTestType = 'ishihara';
+            openFullScreenTestWithType('ishihara');
+        };
+    }
+
+    if (elements.testD15Btn) {
+        elements.testD15Btn.onclick = () => {
+            currentTestType = 'farnsworth';
+            openFullScreenTestWithType('farnsworth');
+        };
     }
 
     if (elements.nextBtn) {
@@ -117,8 +139,8 @@ async function init() {
     }
 
     if (elements.answerInput) {
-        elements.answerInput.onkeydown = (e) => {
-            if (e.key === 'Enter') submitAnswer();
+        elements.answerInput.onkeydown = (event) => {
+            if (event.key === 'Enter') submitAnswer();
         };
     }
 
@@ -127,7 +149,7 @@ async function init() {
     }
 
     if (elements.fullScreenBtn) {
-        elements.fullScreenBtn.onclick = openFullScreenTest;
+        elements.fullScreenBtn.onclick = () => openFullScreenTestWithType(currentTestType || 'ishihara');
     }
 
     if (elements.applyManualBtn) {
@@ -135,19 +157,19 @@ async function init() {
     }
 
     if (elements.enableToggle) {
-        elements.enableToggle.onchange = (e) => {
-            currentSettings.enabled = e.target.checked;
+        elements.enableToggle.onchange = (event) => {
+            currentSettings.enabled = event.target.checked;
             saveSettings();
         };
     }
 
     if (elements.severitySlider) {
-        elements.severitySlider.oninput = (e) => {
-            const val = e.target.value / 100;
+        elements.severitySlider.oninput = (event) => {
+            const value = Number(event.target.value) / 100;
             if (elements.strengthVal) {
-                elements.strengthVal.innerText = `${Math.round(val * 100)}%`;
+                elements.strengthVal.innerText = `${Math.round(value * 100)}%`;
             }
-            currentSettings.overrideSeverity = val;
+            currentSettings.overrideSeverity = value;
             saveSettings();
         };
     }
@@ -160,10 +182,11 @@ function updateStatusDisplay() {
         elements.statusBadge.classList.remove('hidden');
         elements.modeText.innerText = currentSettings.source.toUpperCase();
         elements.startBtn.innerText = 'Run Diagnostic Anyway';
-    } else {
-        elements.statusBadge.classList.add('hidden');
-        elements.startBtn.innerText = 'Start Diagnosis';
+        return;
     }
+
+    elements.statusBadge.classList.add('hidden');
+    elements.startBtn.innerText = 'Start Diagnosis';
 }
 
 function applyManualSelection() {
@@ -223,10 +246,9 @@ function renderPlate(plate) {
     img.alt = plate.name;
     img.className = 'ishihara-img';
 
-    const plateContainer = document.getElementById('plate-placeholder');
-    if (plateContainer) {
-        plateContainer.innerHTML = '';
-        plateContainer.appendChild(img);
+    if (elements.platePlaceholder) {
+        elements.platePlaceholder.innerHTML = '';
+        elements.platePlaceholder.appendChild(img);
     }
 
     if (elements.answerInput) {
@@ -235,29 +257,29 @@ function renderPlate(plate) {
     }
 
     if (elements.progress && plates.length > 0) {
-        const prog = (engine.currentPlateIndex / plates.length) * 100;
-        elements.progress.style.width = `${prog}%`;
+        const progress = (engine.currentPlateIndex / plates.length) * 100;
+        elements.progress.style.width = `${progress}%`;
     }
 }
 
 function submitAnswer() {
     if (!engine) return;
 
-    const ans = elements.answerInput ? elements.answerInput.value.trim() : '';
-    const next = engine.submitAnswer(ans);
+    const answer = elements.answerInput ? elements.answerInput.value.trim() : '';
+    const next = engine.submitAnswer(answer);
 
     if (next.status === 'next') {
         renderPlate(next.plate);
-    } else {
-        showResult(next.result, true);
+        return;
     }
+
+    showResult({ ...next.result }, true);
 }
 
 function getSeverityLabel(result) {
     if (result.severityLabel) return result.severityLabel;
 
     const score = result.severityScore ?? 0;
-
     if (score > 0.7) return 'Strong';
     if (score > 0.35) return 'Moderate';
     if (score > 0) return 'Mild';
@@ -265,8 +287,8 @@ function getSeverityLabel(result) {
 }
 
 function getSafeConfidence(result) {
-    const conf = typeof result.confidence === 'number' ? result.confidence : 1;
-    return Math.max(0, Math.min(conf, 1));
+    const confidence = typeof result.confidence === 'number' ? result.confidence : 1;
+    return Math.max(0, Math.min(confidence, 1));
 }
 
 function showResult(result, isNew = true) {
@@ -278,12 +300,14 @@ function showResult(result, isNew = true) {
             ...result,
             severityLabel: getSeverityLabel(result),
             confidence: getSafeConfidence(result),
-            enabled: true,
+            enabled: shouldEnableFilter(result.type),
             overrideSeverity: null,
             source: 'diagnostic',
-            aiExplanation: ''
+            aiExplanation: '',
+            testType: result.testType || currentTestType
         };
 
+        currentTestType = currentSettings.testType || currentTestType;
         saveSettings();
         fetchAiAnalysis(currentSettings);
     }
@@ -299,8 +323,7 @@ function showResult(result, isNew = true) {
     }
 
     if (elements.resSeverity) {
-        elements.resSeverity.innerText =
-            currentSettings.severityLabel || getSeverityLabel(currentSettings);
+        elements.resSeverity.innerText = currentSettings.severityLabel || getSeverityLabel(currentSettings);
     }
 
     const confidencePercent = Math.round(getSafeConfidence(currentSettings) * 100);
@@ -322,91 +345,47 @@ function showResult(result, isNew = true) {
         elements.enableToggle.checked = !!currentSettings.enabled;
     }
 
-    const sev =
-        currentSettings.overrideSeverity !== null
-            ? currentSettings.overrideSeverity
-            : (currentSettings.severityScore ?? 0);
+    const severityValue = currentSettings.overrideSeverity !== null
+        ? currentSettings.overrideSeverity
+        : (currentSettings.severityScore ?? 0);
 
     if (elements.severitySlider) {
-        elements.severitySlider.value = sev * 100;
+        elements.severitySlider.value = severityValue * 100;
     }
 
     if (elements.strengthVal) {
-        elements.strengthVal.innerText = `${Math.round(sev * 100)}%`;
+        elements.strengthVal.innerText = `${Math.round(severityValue * 100)}%`;
     }
 }
 
-async function fetchAiAnalysis(result) {
+function generateAIExplanation(result) {
+    if ((result.type || 'Normal') === 'Normal') {
+        return 'Your responses indicate normal color vision. No signs of color vision deficiency were detected.';
+    }
+
+    if ((result.type || '') === 'Borderline' || (result.type || '') === 'Unspecified') {
+        return 'Your responses were inconclusive. The screening found some inconsistent plates or color choices, but not enough evidence to call this a definite deficiency pattern.';
+    }
+
+    return `The test results suggest ${result.type || 'unknown'} color vision deficiency with ${getSeverityLabel(result)} severity. This means certain color ranges may be harder to distinguish. Consider consulting a specialist for confirmation.`;
+}
+
+function fetchAiAnalysis(result) {
     if (!elements.aiExplanation) return;
 
-    elements.aiExplanation.innerText = 'Analyzing results with AI...';
-
-    try {
-        const payload = {
-            likelyType: result.type || 'Normal',
-            confidence: Math.round(getSafeConfidence(result) * 100),
-            severity: getSeverityLabel(result),
-            testQuality: 'Acceptable',
-            totalResponses: Array.isArray(result.responses) ? result.responses.length : 0
-        };
-
-        console.log('[VisionAI] Sending AI payload:', payload);
-
-        const response = await fetch('http://localhost:3000/analyze-result', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(payload)
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
-        }
-
-        const data = await response.json();
-        console.log('[VisionAI] AI response:', data);
-
-        if (data.success && data.analysis) {
-            elements.aiExplanation.innerText = data.analysis;
-            currentSettings.aiExplanation = data.analysis;
-            saveSettings();
-        } else {
-            throw new Error(data.error || 'AI analysis failed');
-        }
-    } catch (error) {
-        console.error('[VisionAI] Failed to fetch AI analysis:', error);
-
-        const fallbackText =
-            `The screening suggests a likely ${result.type || 'Normal'} pattern ` +
-            `(Confidence: ${Math.round(getSafeConfidence(result) * 100)}%, Severity: ${getSeverityLabel(result)}). ` +
-            `This is a preliminary screening only and not a clinical diagnosis. ` +
-            `A professional eye evaluation may help with confirmation.`;
-
-        elements.aiExplanation.innerText = fallbackText;
-        currentSettings.aiExplanation = fallbackText;
-        saveSettings();
-    }
+    const explanation = generateAIExplanation(result);
+    elements.aiExplanation.innerText = explanation;
+    currentSettings.aiExplanation = explanation;
+    saveSettings();
 }
 
 function saveSettings() {
     chrome.storage.local.set({ cvdSettings: currentSettings });
 }
 
-function openFullScreenTest() {
-    chrome.windows.create({
-        url: chrome.runtime.getURL('tests/diagnostic.html'),
-        type: 'popup',
-        width: 1000,
-        height: 700
-    });
-}
-
 function openFullScreenTestWithType(testType) {
-    console.log('[VisionAI] Opening full screen test:', testType);
-
     chrome.windows.create({
-        url: chrome.runtime.getURL('tests/diagnostic.html'),
+        url: chrome.runtime.getURL(`tests/diagnostic.html?test=${encodeURIComponent(testType)}`),
         type: 'popup',
         width: 1000,
         height: 700
@@ -414,3 +393,4 @@ function openFullScreenTestWithType(testType) {
 }
 
 init();
+

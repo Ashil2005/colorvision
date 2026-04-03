@@ -38,12 +38,13 @@
             z-index: 0;
         }
 
-        .container {
+        .container,
+        .main-test-container {
             position: relative;
             z-index: 1;
             text-align: center;
             width: 90%;
-            max-width: 900px;
+            max-width: 1000px;
             background: rgba(20, 28, 50, 0.4);
             backdrop-filter: blur(20px);
             border: 1px solid rgba(100, 200, 255, 0.15);
@@ -54,6 +55,11 @@
                 0 0 30px rgba(0, 200, 255, 0.1),
                 inset 0 1px 0 rgba(255, 255, 255, 0.1);
             animation: slideIn 0.6s ease-out;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-height: 80vh;
         }
 
         @keyframes slideIn {
@@ -116,9 +122,10 @@
             }
         }
 
-        .test-card {
+        .test-card,
+        .d15-card {
             position: relative;
-            padding: 32px 24px;
+            padding: 20px 24px;
             background: rgba(30, 50, 90, 0.3);
             border: 1.5px solid rgba(100, 200, 255, 0.2);
             border-radius: 16px;
@@ -126,6 +133,7 @@
             cursor: pointer;
             transition: all 0.35s cubic-bezier(0.23, 1, 0.320, 1);
             overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
         }
 
         .test-card::before {
@@ -263,6 +271,32 @@
             margin: 30px 0;
         }
 
+        .ishihara-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 70vh;
+        }
+
+        .ishihara-plate {
+            margin: 20px auto;
+            width: auto;
+            max-width: 300px;
+            height: auto;
+            max-height: 300px;
+            border: 2px solid rgba(100, 200, 255, 0.3);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            background: rgba(10, 20, 40, 0.4);
+            box-shadow: 
+                0 8px 24px rgba(0, 200, 255, 0.1),
+                inset 0 0 20px rgba(0, 0, 0, 0.3);
+        }
+
         .ishihara-plate {
             margin: 30px auto;
             width: 350px;
@@ -286,11 +320,20 @@
             border-radius: 50%;
         }
 
-        .input-area {
+        .input-area,
+        .answer-section {
             display: flex;
             gap: 12px;
             justify-content: center;
-            margin-top: 24px;
+            margin-top: 10px;
+        }
+
+        .test-actions {
+            margin-top: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
         }
 
         input[type="text"] {
@@ -396,6 +439,111 @@
             letter-spacing: 0.5px;
         }
 
+        .fullscreen-wrapper,
+        .d15-fullscreen {
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .test-card,
+        .d15-fullscreen .d15-container {
+            width: 100%;
+            max-width: 950px;
+            padding: 24px;
+            border-radius: 16px;
+            background: inherit;
+            box-sizing: border-box;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(100, 200, 255, 0.2);
+        }
+
+        .test-header {
+            text-align: left;
+            margin-bottom: 16px;
+        }
+
+        .test-header h2 {
+            margin: 0;
+            font-size: 20px;
+        }
+
+        .test-header p {
+            margin-top: 6px;
+            opacity: 0.7;
+        }
+
+        .caps-wrapper {
+            padding: 20px 10px;
+        }
+
+        .d15-caps,
+        .caps-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            padding: 12px;
+            width: 100%;
+            box-sizing: border-box;
+            border-radius: 16px;
+        }
+
+        .d15-cap,
+        .cap {
+            width: 50px;
+            height: 80px;
+            border-radius: 25px;
+            flex-shrink: 0;
+            cursor: grab;
+            transition: transform 0.15s ease;
+            border: 2px solid rgba(255, 255, 255, 0.35);
+            padding: 0;
+        }
+
+        .d15-cap:hover,
+        .cap:hover {
+            transform: scale(1.05);
+        }
+
+        .test-actions,
+        .d15-submit {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            gap: 10px;
+        }
+
+        .d15-fullscreen .test-header,
+        .d15-fullscreen .plate-display,
+        .d15-fullscreen .input-area,
+        .d15-fullscreen .ai-badge {
+            margin-bottom: 16px;
+        }
+
+        .d15-fullscreen .plate-display {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        @media (max-width: 600px) {
+            .d15-container {
+                padding: 16px;
+            }
+
+            .d15-cap {
+                width: 40px;
+                height: 40px;
+            }
+        }
+
         .hidden {
             display: none !important;
         }
@@ -425,57 +573,166 @@
             transform: translateY(-2px);
             box-shadow: 0 8px 30px rgba(255, 107, 107, 0.5);
         }
+
+        /* Fullscreen wrapper for D-15 and Ishihara tests */
+        .fullscreen-wrapper {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: auto;
+        }
+
+        /* Main content container - constrains width */
+        .main-content {
+            width: 100%;
+            max-width: 900px;
+            padding: 24px;
+            box-sizing: border-box;
+        }
+
+        /* Test header - compact centered */
+        #test-screen .test-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        /* Caps card - strong visual container */
+        .caps-card {
+            border-radius: 16px;
+            padding: 24px;
+            margin-top: 20px;
+            text-align: center;
+            background: rgba(30, 50, 90, 0.2);
+            border: 1px solid rgba(100, 200, 255, 0.2);
+        }
+
+        .caps-card .instruction {
+            margin: 0;
+            opacity: 0.7;
+            font-size: 0.95rem;
+        }
+
+        /* Inner caps container - clean box look */
+        .caps-inner {
+            margin-top: 16px;
+            padding: 16px;
+            border-radius: 14px;
+            display: flex;
+            justify-content: center;
+            background: rgba(10, 20, 40, 0.3);
+        }
+
+        /* Caps container - clean centered */
+        .caps-container {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        /* Cap styling - vertical capsule shape */
+        .cap {
+            width: 48px;
+            height: 80px;
+            border-radius: 24px;
+            flex-shrink: 0;
+            cursor: grab;
+            transition: transform 0.15s ease;
+            border: 2px solid rgba(255, 255, 255, 0.35);
+            padding: 0;
+        }
+
+        .cap:hover {
+            transform: scale(1.05);
+        }
+
+        /* Test actions - button positioning */
+        .test-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            gap: 12px;
+        }
     </style>
 </head>
 
 <body>
-    <div class="container">
+    <div class="container main-test-container">
         <!-- Test Selection Screen -->
         <section id="selection-screen">
             <h2>🧬 VisionAI Diagnostic</h2>
             <p class="selection-intro">Advanced AI-Powered Color Vision Assessment</p>
             
-            <div class="test-selection">
-                <div class="test-card">
+            <div class="test-selection main-test-container">
+                <div class="test-card d15-card">
                     <div class="emoji">🔴</div>
                     <h3>Ishihara Test</h3>
                     <p>Classic colored dot pattern analysis</p>
                     <p>Identify numbers hidden in dot matrices</p>
-                    <p class="duration">⏱ ~5 minutes | 28 plates</p>
+                    <p class="duration">~5 minutes | 28 plates</p>
                     <input type="radio" id="test-ishihara" name="test-type" value="ishihara">
                     <label for="test-ishihara" id="start-ishihara-btn">Start Test</label>
+                </div>
+                <div class="test-card">
+                    <div class="emoji">🟡</div>
+                    <h3>Farnsworth D-15</h3>
+                    <p>Arrange color caps into a smooth hue progression</p>
+                    <p>Drag and drop caps until the sequence feels natural</p>
+                    <p class="duration">~3 minutes | 15 caps</p>
+                    <input type="radio" id="test-d15" name="test-type" value="farnsworth">
+                    <label for="test-d15" id="start-d15-btn">Start Test</label>
                 </div>
             </div>
         </section>
 
         <!-- Test Screen -->
-        <section id="test-screen" class="hidden">
-            <div class="test-header">
-                <div class="back-btn-wrapper">
-                    <button id="back-to-selection-btn" class="secondary-btn">← Back</button>
-                </div>
-                <div class="progress-section">
-                    <h3 id="test-title">Test</h3>
-                    <div class="progress-bar">
-                        <div id="progress" style="width: 0%"></div>
+        <section id="test-screen" class="hidden fullscreen-wrapper">
+            <div class="main-content">
+                <div id="d15-wrapper" class="d15-container test-card">
+                    <div class="test-header">
+                        <div class="back-btn-wrapper">
+                            <button id="back-to-selection-btn" class="secondary-btn">← Back</button>
+                        </div>
+                    <div class="progress-section">
+                        <h2 id="test-title" class="d15-title">Test</h2>
+                        <p id="test-description" class="d15-description" style="opacity:0.7; margin-top:6px;">Drag the caps into a smooth hue progression.</p>
+                        <div class="progress-bar">
+                            <div id="progress" style="width: 0%"></div>
+                        </div>
+                        <p class="progress-text"><span id="progress-count">1</span> / <span id="progress-total">28</span></p>
                     </div>
-                    <p class="progress-text"><span id="progress-count">1</span> / <span id="progress-total">28</span></p>
                 </div>
-            </div>
 
-            <div class="plate-display">
-                <h4 id="plate-name" style="color: #00d4ff; margin-bottom: 20px;">Loading...</h4>
-                <div id="plate-placeholder" class="ishihara-plate">
-                    <span style="color: #6b7d9c;">Loading...</span>
+                <div class="caps-card">
+                    <p class="instruction" id="instruction-text">Drag the caps into a smooth color progression from left to right.</p>
+                    <div class="caps-inner">
+                        <div id="plate-placeholder" class="caps-container">
+                            <span style="color: #6b7d9c;">Loading...</span>
+                        </div>
+                    </div>
                 </div>
-            </div>
 
-            <div class="input-area">
-                <input type="text" id="answer-input" placeholder="Your answer..." autofocus>
-                <button id="next-btn" class="primary-btn">Next ▶</button>
-            </div>
+                <div class="ishihara-wrapper">
+                    <div class="plate-display">
+                        <h4 id="plate-name" style="color: #00d4ff; margin-bottom: 20px;">Loading...</h4>
+                        <div id="ishihara-plate" class="ishihara-plate caps-wrapper">
+                            <span style="color: #6b7d9c;">Loading...</span>
+                        </div>
+                    </div>
+                </div>
 
-            <div class="ai-badge">🤖 AI-Powered Analysis</div>
+                <div class="test-actions">
+                    <input type="text" id="answer-input" placeholder="Your answer..." autofocus>
+                    <button id="reshuffle-btn" class="secondary-btn reshuffle-btn" style="display:none;">Reshuffle</button>
+                    <button id="next-btn" class="primary-btn submit-btn">Submit</button>
+                </div>
+
+                <div class="ai-badge">🤖 AI-Powered Analysis</div>
+            </div>
         </section>
 
         <!-- Result Screen -->
@@ -520,3 +777,5 @@
 </body>
 
 </html>
+
+
