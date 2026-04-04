@@ -35,19 +35,25 @@
 
         <h2>AI-Assisted Diagnostic</h2>
         <p>New to CVD? Let our diagnostic engine detect your type and severity.</p>
-        <button id="start-btn" class="primary-btn">Start Diagnosis</button>
+        <div class="test-selection-buttons" style="display: flex; gap: 10px; flex-direction: column; margin-bottom: 10px;">
+          <button id="test-ishihara-btn" class="secondary-btn" style="font-size: 0.9rem;">Ishihara Test (28 plates)</button>
+          <button id="test-d15-btn" class="secondary-btn" style="font-size: 0.9rem;">Farnsworth D-15 Test</button>
+        </div>
+        <button id="start-btn" class="primary-btn">Open Full Screen Test</button>
       </section>
 
       <!-- Test Screen -->
       <section id="test-screen" class="screen hidden">
-        <div class="progress-bar">
+        <button id="full-screen-btn" class="secondary-btn" style="float: right; margin-bottom: 10px;">Full Screen
+          Test</button>
+        <div class="progress-bar" style="clear: both;">
           <div id="progress" style="width: 0%"></div>
         </div>
+        <h3 id="plate-name">Loading...</h3>
         <div class="plate-container">
           <!-- Image will be injected here -->
           <div id="plate-placeholder" class="ishihara-plate">
-            <!-- Placeholder for SVG/Image -->
-            <span id="plate-name">Loading...</span>
+            <span id="loading-text">Loading...</span>
           </div>
         </div>
         <div class="input-area">
@@ -70,6 +76,13 @@
             <div class="meter-bg">
               <div id="conf-bar" style="width: 0%"></div>
             </div>
+          </div>
+        </div>
+
+        <div class="result-card" id="ai-result-card">
+          <p><strong>🤖 AI Assisted Screening</strong></p>
+          <div id="ai-explanation" style="font-size: 0.95rem; margin-top: 10px; color: #b0b8d0; line-height: 1.4;">
+            Analyzing results...
           </div>
         </div>
 
@@ -98,3 +111,5 @@
 </body>
 
 </html>
+
+

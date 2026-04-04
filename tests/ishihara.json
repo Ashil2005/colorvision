@@ -1,69 +1,233 @@
 [
-  {
-    "id": 1,
-    "category": "Demonstration",
-    "name": "Plate 1",
-    "expected": "12",
-    "description": "Everyone should see 12",
-    "confusionMapping": {}
-  },
-  {
-    "id": 2,
-    "category": "Red-Green",
-    "name": "Plate 2",
-    "expected": "8",
-    "confusionMapping": {
-      "Protan": "3",
-      "Deutan": "3"
+    {
+        "id":  "P01",
+        "name":  "Plate 1",
+        "category":  "Demonstration",
+        "type":  "demo",
+        "file":  "ishihara_01.jpg",
+        "image":  "assets/images/ishihara/ishihara_01.jpg",
+        "normal":  "12",
+        "deficient":  "12",
+        "protan":  "12",
+        "deutan":  "12",
+        "expected":  "12",
+        "confusionMapping":  {
+                                 "Protan":  "12",
+                                 "Deutan":  "12"
+                             },
+        "available":  true,
+        "sourcePage":  3
+    },
+    {
+        "id":  "P02",
+        "name":  "Plate 2",
+        "category":  "Red-Green",
+        "type":  "transform",
+        "file":  "ishihara_02.jpg",
+        "image":  "assets/images/ishihara/ishihara_02.jpg",
+        "normal":  "8",
+        "deficient":  "3",
+        "protan":  "3",
+        "deutan":  "3",
+        "expected":  "8",
+        "confusionMapping":  {
+                                 "Protan":  "3",
+                                 "Deutan":  "3"
+                             },
+        "available":  true,
+        "sourcePage":  4,
+        "subtypeStrength":  "weak"
+    },
+    {
+        "id":  "P03",
+        "name":  "Plate 3",
+        "category":  "Red-Green",
+        "type":  "transform",
+        "file":  "ishihara_03.jpg",
+        "image":  "assets/images/ishihara/ishihara_03.jpg",
+        "normal":  "29",
+        "deficient":  "70",
+        "protan":  "70",
+        "deutan":  "70",
+        "expected":  "29",
+        "confusionMapping":  {
+                                 "Protan":  "70",
+                                 "Deutan":  "70"
+                             },
+        "available":  true,
+        "sourcePage":  5,
+        "subtypeStrength":  "weak"
+    },
+    {
+        "id":  "P04",
+        "name":  "Plate 4",
+        "category":  "Red-Green",
+        "type":  "transform",
+        "file":  "ishihara_04.jpg",
+        "image":  "assets/images/ishihara/ishihara_04.jpg",
+        "normal":  "5",
+        "deficient":  "2",
+        "protan":  "2",
+        "deutan":  "2",
+        "expected":  "5",
+        "confusionMapping":  {
+                                 "Protan":  "2",
+                                 "Deutan":  "2"
+                             },
+        "available":  true,
+        "sourcePage":  6,
+        "subtypeStrength":  "weak"
+    },
+    {
+        "id":  "P05",
+        "name":  "Plate 5",
+        "category":  "Red-Green",
+        "type":  "transform",
+        "file":  "ishihara_05.jpg",
+        "image":  "assets/images/ishihara/ishihara_05.jpg",
+        "normal":  "3",
+        "deficient":  "5",
+        "protan":  "5",
+        "deutan":  "5",
+        "expected":  "3",
+        "confusionMapping":  {
+                                 "Protan":  "5",
+                                 "Deutan":  "5"
+                             },
+        "available":  true,
+        "sourcePage":  7,
+        "subtypeStrength":  "weak"
+    },
+    {
+        "id":  "P06",
+        "name":  "Plate 6",
+        "category":  "Red-Green",
+        "type":  "transform",
+        "file":  "ishihara_06.jpg",
+        "image":  "assets/images/ishihara/ishihara_06.jpg",
+        "normal":  "15",
+        "deficient":  "17",
+        "protan":  "17",
+        "deutan":  "17",
+        "expected":  "15",
+        "confusionMapping":  {
+                                 "Protan":  "17",
+                                 "Deutan":  "17"
+                             },
+        "available":  true,
+        "sourcePage":  8,
+        "subtypeStrength":  "weak"
+    },
+    {
+        "id":  "P07",
+        "name":  "Plate 7",
+        "category":  "Red-Green",
+        "type":  "transform",
+        "file":  "ishihara_07.jpg",
+        "image":  "assets/images/ishihara/ishihara_07.jpg",
+        "normal":  "74",
+        "deficient":  "21",
+        "protan":  "21",
+        "deutan":  "21",
+        "expected":  "74",
+        "confusionMapping":  {
+                                 "Protan":  "21",
+                                 "Deutan":  "21"
+                             },
+        "available":  true,
+        "sourcePage":  9,
+        "subtypeStrength":  "weak"
+    },
+    {
+        "id":  "P08",
+        "name":  "Plate 8",
+        "category":  "Red-Green",
+        "type":  "transform",
+        "file":  "ishihara_08.jpg",
+        "image":  "assets/images/ishihara/ishihara_08.jpg",
+        "normal":  "6",
+        "deficient":  "5",
+        "protan":  "5",
+        "deutan":  "5",
+        "expected":  "6",
+        "confusionMapping":  {
+                                 "Protan":  "5",
+                                 "Deutan":  "5"
+                             },
+        "available":  true,
+        "sourcePage":  10,
+        "subtypeStrength":  "weak"
+    },
+    {
+        "id":  "P09",
+        "name":  "Plate 9",
+        "category":  "Red-Green",
+        "type":  "vanishing",
+        "file":  "ishihara_09.jpg",
+        "image":  "assets/images/ishihara/ishihara_09.jpg",
+        "normal":  "45",
+        "deficient":  null,
+        "protan":  null,
+        "deutan":  null,
+        "expected":  "45",
+        "confusionMapping":  {
+
+                             },
+        "available":  true,
+        "sourcePage":  11
+    },
+    {
+        "id":  "P10",
+        "name":  "Plate 10",
+        "category":  "Red-Green",
+        "type":  "vanishing",
+        "file":  "ishihara_10.jpg",
+        "image":  "assets/images/ishihara/ishihara_10.jpg",
+        "normal":  "5",
+        "deficient":  null,
+        "protan":  null,
+        "deutan":  null,
+        "expected":  "5",
+        "confusionMapping":  {
+
+                             },
+        "available":  true,
+        "sourcePage":  12
+    },
+    {
+        "id":  "P11",
+        "name":  "Plate 11",
+        "category":  "Red-Green",
+        "type":  "vanishing",
+        "file":  "ishihara_11.jpg",
+        "image":  "assets/images/ishihara/ishihara_11.jpg",
+        "normal":  "7",
+        "deficient":  null,
+        "protan":  null,
+        "deutan":  null,
+        "expected":  "7",
+        "confusionMapping":  {
+
+                             },
+        "available":  true,
+        "sourcePage":  13
+    },
+    {
+        "id":  "P12",
+        "name":  "Plate 12",
+        "category":  "Red-Green",
+        "type":  "vanishing",
+        "file":  "ishihara_12.jpg",
+        "image":  "assets/images/ishihara/ishihara_12.jpg",
+        "normal":  "16",
+        "deficient":  null,
+        "protan":  null,
+        "deutan":  null,
+        "expected":  "16",
+        "confusionMapping":  {
+
+                             },
+        "available":  true,
+        "sourcePage":  14
     }
-  },
-  {
-    "id": 3,
-    "category": "Red-Green",
-    "name": "Plate 3",
-    "expected": "29",
-    "confusionMapping": {
-      "Protan": "70",
-      "Deutan": "70"
-    }
-  },
-  {
-    "id": 4,
-    "category": "Red-Green",
-    "name": "Plate 4",
-    "expected": "5",
-    "confusionMapping": {
-      "Protan": "2",
-      "Deutan": "2"
-    }
-  },
-  {
-    "id": 5,
-    "category": "Red-Green",
-    "name": "Plate 5",
-    "expected": "3",
-    "confusionMapping": {
-      "Protan": "5",
-      "Deutan": "5"
-    }
-  },
-  {
-    "id": 6,
-    "category": "Red-Green-Diff",
-    "name": "Plate 6",
-    "expected": "26",
-    "confusionMapping": {
-      "Protan": "6",
-      "Deutan": "2"
-    }
-  },
-  {
-    "id": 7,
-    "category": "Blue-Yellow",
-    "name": "Plate 7",
-    "expected": "7",
-    "confusionMapping": {
-      "Tritan": "X"
-    }
-  }
 ]

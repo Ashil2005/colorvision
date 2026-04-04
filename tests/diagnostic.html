@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>VisionAI Diagnostic | AI Medical Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+            background: linear-gradient(135deg, #0f1419 0%, #1a1f2e 50%, #0d0f16 100%);
+            color: #e0e6ff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 100vh;
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+
+        /* Animated background elements */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(0, 200, 255, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(100, 50, 255, 0.05) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container,
+        .main-test-container {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            width: 90%;
+            max-width: 1000px;
+            background: rgba(20, 28, 50, 0.4);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(100, 200, 255, 0.15);
+            padding: 50px;
+            border-radius: 24px;
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.3),
+                0 0 30px rgba(0, 200, 255, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            animation: slideIn 0.6s ease-out;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-height: auto;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h2 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #00d4ff 0%, #a78bfa 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 12px;
+            letter-spacing: -0.5px;
+        }
+
+        h3 {
+            font-size: 1.3rem;
+            color: #e0e6ff;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        p {
+            font-size: 0.95rem;
+            color: #b0b8d0;
+            line-height: 1.6;
+        }
+
+        /* Test Selection Screen */
+        #selection-screen h2 {
+            margin-bottom: 8px;
+        }
+
+        .selection-intro {
+            color: #8890b0;
+            font-size: 1rem;
+            margin-bottom: 40px;
+            font-weight: 500;
+        }
+
+        .test-selection {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 24px;
+            margin: 30px 0;
+        }
+
+        @media (max-width: 768px) {
+            .test-selection {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .test-card,
+        .d15-card {
+            position: relative;
+            padding: 20px 24px;
+            background: rgba(30, 50, 90, 0.3);
+            border: 1.5px solid rgba(100, 200, 255, 0.2);
+            border-radius: 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.35s cubic-bezier(0.23, 1, 0.320, 1);
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .test-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(100, 200, 255, 0.15), transparent);
+            transition: left 0.5s;
+        }
+
+        .test-card:hover {
+            border-color: rgba(100, 200, 255, 0.5);
+            background: rgba(50, 80, 130, 0.4);
+            transform: translateY(-4px);
+            box-shadow: 
+                0 12px 40px rgba(0, 200, 255, 0.15),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+
+        .test-card:hover::before {
+            left: 100%;
+        }
+
+        .test-card h3 {
+            color: #00d4ff;
+            font-size: 1.4rem;
+            margin: 0 0 12px 0;
+        }
+
+        .test-card .emoji {
+            font-size: 2.5rem;
+            margin-bottom: 12px;
+        }
+
+        .test-card p {
+            margin: 8px 0;
+            font-size: 0.9rem;
+        }
+
+        .test-card .duration {
+            font-size: 0.85rem;
+            color: #6b7d9c;
+            margin-top: 12px;
+        }
+
+        .test-card input[type="radio"] {
+            display: none;
+        }
+
+        .test-card input[type="radio"]:checked + label {
+            background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
+            border-color: #00d4ff;
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.4);
+        }
+
+        .test-card label {
+            display: block;
+            padding: 12px 24px;
+            background: rgba(0, 200, 255, 0.1);
+            border: 1.5px solid rgba(100, 200, 255, 0.3);
+            border-radius: 10px;
+            color: #00d4ff;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 16px;
+        }
+
+        .test-card label:hover {
+            background: rgba(0, 200, 255, 0.2);
+            border-color: rgba(0, 200, 255, 0.6);
+        }
+
+        .both-tests-section {
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 1px solid rgba(100, 200, 255, 0.2);
+        }
+
+        /* Test Screen */
+        #test-screen {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .test-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .back-btn-wrapper {
+            flex: 1;
+            text-align: left;
+        }
+
+        .progress-section {
+            flex: 2;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: rgba(100, 200, 255, 0.15);
+            border-radius: 10px;
+            margin: 12px 0;
+            overflow: hidden;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        #progress {
+            height: 100%;
+            background: linear-gradient(90deg, #00d4ff 0%, #0099cc 100%);
+            border-radius: 10px;
+            transition: width 0.4s cubic-bezier(0.23, 1, 0.320, 1);
+            box-shadow: 0 0 15px rgba(0, 212, 255, 0.5);
+        }
+
+        .progress-text {
+            font-size: 0.85rem;
+            color: #8890b0;
+            text-align: right;
+        }
+
+        .plate-display {
+            background: rgba(30, 50, 90, 0.2);
+            border: 1px solid rgba(100, 200, 255, 0.2);
+            border-radius: 16px;
+            padding: 20px;
+            margin: 20px 0;
+            width: 100%;
+            box-sizing: border-box;
+            overflow: visible;
+        }
+
+        .ishihara-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            padding: 20px;
+            overflow: visible;
+        }
+
+        .ishihara-plate {
+            margin: 30px auto;
+            width: 500px;
+            height: 500px;
+            border: 2px solid rgba(100, 200, 255, 0.3);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            background: rgba(10, 20, 40, 0.4);
+            box-shadow: 
+                0 8px 24px rgba(0, 200, 255, 0.1),
+                inset 0 0 20px rgba(0, 0, 0, 0.3);
+            flex-shrink: 0;
+        }
+        
+        @media (max-width: 1200px) {
+            .ishihara-plate {
+                width: 400px;
+                height: 400px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .ishihara-plate {
+                width: 300px;
+                height: 300px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .ishihara-plate {
+                width: 220px;
+                height: 220px;
+            }
+        }
+
+        .ishihara-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+
+        .input-area,
+        .answer-section {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-top: 10px;
+        }
+
+        .test-actions {
+            margin-top: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+        }
+
+        input[type="text"] {
+            padding: 14px 20px;
+            font-size: 16px;
+            width: 200px;
+            background: rgba(40, 60, 100, 0.4);
+            border: 1.5px solid rgba(100, 200, 255, 0.3);
+            border-radius: 10px;
+            color: #e0e6ff;
+            text-align: center;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            background: rgba(40, 60, 100, 0.6);
+            border-color: rgba(0, 200, 255, 0.8);
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+        }
+
+        input[type="text"]::placeholder {
+            color: #6b7d9c;
+        }
+
+        /* Buttons */
+        button {
+            padding: 13px 28px;
+            font-size: 15px;
+            font-weight: 600;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.23, 1, 0.320, 1);
+            letter-spacing: 0.3px;
+        }
+
+        .primary-btn,
+        #next-btn {
+            background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
+            color: #fff;
+            box-shadow: 0 4px 20px rgba(0, 212, 255, 0.3);
+        }
+
+        .primary-btn:hover,
+        #next-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0, 212, 255, 0.5);
+        }
+
+        .secondary-btn,
+        #back-to-selection-btn {
+            background: rgba(100, 200, 255, 0.1);
+            color: #00d4ff;
+            border: 1.5px solid rgba(100, 200, 255, 0.4);
+        }
+
+        .secondary-btn:hover,
+        #back-to-selection-btn:hover {
+            background: rgba(100, 200, 255, 0.2);
+            border-color: rgba(0, 200, 255, 0.8);
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.2);
+        }
+
+        /* Result Screen */
+        #result-screen {
+            text-align: center;
+        }
+
+        .result-card {
+            background: rgba(50, 80, 130, 0.3);
+            backdrop-filter: blur(10px);
+            border: 1.5px solid rgba(100, 200, 255, 0.25);
+            padding: 32px;
+            border-radius: 16px;
+            margin: 24px 0;
+            box-shadow: 0 8px 32px rgba(0, 200, 255, 0.1);
+        }
+
+        .result-card p {
+            font-size: 1.1rem;
+            margin: 16px 0;
+            color: #e0e6ff;
+        }
+
+        .result-card strong {
+            color: #00d4ff;
+            font-weight: 700;
+            font-size: 1.3rem;
+        }
+
+        .ai-badge {
+            display: inline-block;
+            background: rgba(0, 212, 255, 0.15);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            color: #00d4ff;
+            margin-top: 16px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .fullscreen-wrapper,
+        .d15-fullscreen {
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .test-card,
+        .d15-fullscreen .d15-container {
+            width: 100%;
+            max-width: 950px;
+            padding: 24px;
+            border-radius: 16px;
+            background: inherit;
+            box-sizing: border-box;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(100, 200, 255, 0.2);
+        }
+
+        .test-header {
+            text-align: left;
+            margin-bottom: 16px;
+        }
+
+        .test-header h2 {
+            margin: 0;
+            font-size: 20px;
+        }
+
+        .test-header p {
+            margin-top: 6px;
+            opacity: 0.7;
+        }
+
+        .caps-wrapper {
+            padding: 20px 10px;
+        }
+
+        .d15-caps,
+        .caps-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            overflow: visible;
+            padding: 12px;
+            width: 100%;
+            box-sizing: border-box;
+            border-radius: 16px;
+        }
+
+        .d15-cap,
+        .cap {
+            width: 48px;
+            height: 80px;
+            border-radius: 24px;
+            flex-shrink: 0;
+            cursor: grab;
+            transition: transform 0.15s ease;
+            border: 2px solid rgba(255, 255, 255, 0.35);
+            padding: 0;
+        }
+
+        .d15-cap:hover,
+        .cap:hover {
+            transform: scale(1.05);
+        }
+
+        .fixed-cap {
+            cursor: default !important;
+            opacity: 0.9;
+            position: relative;
+        }
+
+        .fixed-cap::after {
+            content: '★';
+            position: absolute;
+            top: -12px;
+            right: -8px;
+            font-size: 14px;
+            color: #00d4ff;
+        }
+
+        .test-actions,
+        .d15-submit {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            gap: 10px;
+        }
+
+        .d15-fullscreen .test-header,
+        .d15-fullscreen .plate-display,
+        .d15-fullscreen .input-area,
+        .d15-fullscreen .ai-badge {
+            margin-bottom: 16px;
+        }
+
+        .d15-fullscreen .plate-display {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        @media (max-width: 600px) {
+            .d15-container {
+                padding: 16px;
+            }
+
+            .d15-cap {
+                width: 40px;
+                height: 40px;
+            }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .image-placeholder {
+            background: rgba(10, 20, 40, 0.4);
+            border: 2px dashed rgba(100, 200, 255, 0.3);
+            color: #8890b0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            padding: 40px;
+            border-radius: 12px;
+            white-space: pre-wrap;
+            line-height: 1.6;
+        }
+
+        #close-btn {
+            background: linear-gradient(135deg, #ff6b6b 0%, #cc3333 100%);
+            color: #fff;
+            box-shadow: 0 4px 20px rgba(255, 107, 107, 0.3);
+            margin-top: 20px;
+        }
+
+        #close-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(255, 107, 107, 0.5);
+        }
+
+        /* Fullscreen wrapper for D-15 and Ishihara tests */
+        .fullscreen-wrapper {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 20px 0;
+        }
+
+        /* Main content container - fullscreen mode */
+        .main-content {
+            width: 100vw;
+            max-width: 100vw;
+            padding: 24px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Test header - compact centered */
+        #test-screen .test-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        /* Caps card - strong visual container */
+        .caps-card {
+            border-radius: 16px;
+            padding: 24px;
+            margin-top: 20px;
+            text-align: center;
+            background: rgba(30, 50, 90, 0.2);
+            border: 1px solid rgba(100, 200, 255, 0.2);
+        }
+
+        .caps-card .instruction {
+            margin: 0;
+            opacity: 0.7;
+            font-size: 0.95rem;
+        }
+
+        /* Inner caps container - clean box look */
+        .caps-inner {
+            margin-top: 16px;
+            padding: 16px;
+            border-radius: 14px;
+            display: flex;
+            justify-content: center;
+            background: rgba(10, 20, 40, 0.3);
+        }
+
+        /* Caps container - clean centered */
+        .caps-container {
+            display: flex;
+            gap: 10px;
+            overflow: visible;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        /* Cap styling - vertical capsule shape */
+        .cap {
+            width: 48px;
+            height: 80px;
+            border-radius: 24px;
+            flex-shrink: 0;
+            cursor: grab;
+            transition: transform 0.15s ease;
+            border: 2px solid rgba(255, 255, 255, 0.35);
+            padding: 0;
+        }
+
+        .cap:hover {
+            transform: scale(1.05);
+        }
+
+        /* Test actions - button positioning */
+        .test-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            gap: 12px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container main-test-container">
+        <!-- Test Selection Screen -->
+        <section id="selection-screen">
+            <h2>🧬 VisionAI Diagnostic</h2>
+            <p class="selection-intro">Advanced AI-Powered Color Vision Assessment</p>
+            
+            <div class="test-selection main-test-container">
+                <div class="test-card d15-card">
+                    <div class="emoji">🔴</div>
+                    <h3>Ishihara Test</h3>
+                    <p>Classic colored dot pattern analysis</p>
+                    <p>Identify numbers hidden in dot matrices</p>
+                    <p class="duration">~5 minutes | 28 plates</p>
+                    <input type="radio" id="test-ishihara" name="test-type" value="ishihara">
+                    <label for="test-ishihara" id="start-ishihara-btn">Start Test</label>
+                </div>
+                <div class="test-card">
+                    <div class="emoji">🟡</div>
+                    <h3>Farnsworth D-15</h3>
+                    <p>Arrange color caps into a smooth hue progression</p>
+                    <p>Drag and drop caps until the sequence feels natural</p>
+                    <p class="duration">~3 minutes | 15 caps</p>
+                    <input type="radio" id="test-d15" name="test-type" value="farnsworth">
+                    <label for="test-d15" id="start-d15-btn">Start Test</label>
+                </div>
+            </div>
+        </section>
+
+        <!-- Test Screen -->
+        <section id="test-screen" class="hidden fullscreen-wrapper">
+            <div class="main-content">
+                <div id="d15-wrapper" class="d15-container test-card">
+                    <div class="test-header">
+                        <div class="back-btn-wrapper">
+                            <button id="back-to-selection-btn" class="secondary-btn">← Back</button>
+                        </div>
+                    <div class="progress-section">
+                        <h2 id="test-title" class="d15-title">Test</h2>
+                        <p id="test-description" class="d15-description" style="opacity:0.7; margin-top:6px;">Drag the caps into a smooth hue progression.</p>
+                        <div class="progress-bar">
+                            <div id="progress" style="width: 0%"></div>
+                        </div>
+                        <p class="progress-text"><span id="progress-count">1</span> / <span id="progress-total">28</span></p>
+                    </div>
+                </div>
+
+                <div class="caps-card">
+                    <p class="instruction" id="instruction-text">Drag the caps into a smooth color progression from left to right.</p>
+                    <div class="caps-inner">
+                        <div id="plate-placeholder" class="caps-container">
+                            <span style="color: #6b7d9c;">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ishihara-wrapper">
+                    <div class="plate-display">
+                        <h4 id="plate-name" style="color: #00d4ff; margin-bottom: 20px;">Loading...</h4>
+                        <div id="ishihara-plate" class="ishihara-plate caps-wrapper">
+                            <span style="color: #6b7d9c;">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="test-actions">
+                    <input type="text" id="answer-input" placeholder="Your answer..." autofocus>
+                    <button id="reshuffle-btn" class="secondary-btn reshuffle-btn" style="display:none;">Reshuffle</button>
+                    <button id="next-btn" class="primary-btn submit-btn">Submit</button>
+                </div>
+
+                <div class="ai-badge">🤖 AI-Powered Analysis</div>
+            </div>
+        </section>
+
+        <!-- Result Screen -->
+        <section id="result-screen" class="hidden">
+            <h2>✓ Diagnostic Complete</h2>
+            
+            <div class="result-card">
+                <p>Detected Type</p>
+                <p style="font-size: 2rem; margin: 8px 0;">
+                    <strong id="res-type">---</strong>
+                </p>
+            </div>
+
+            <div class="result-card">
+                <p>Severity Assessment</p>
+                <p style="font-size: 1.8rem; margin: 8px 0;">
+                    <strong id="res-severity">---</strong>
+                </p>
+            </div>
+
+            <div class="result-card" id="ai-result-card">
+                <p>🤖 <strong>AI Assisted Screening</strong></p>
+                <div id="ai-explanation" style="font-size: 1.1rem; margin-top: 10px; color: #b0b8d0; line-height: 1.5;">
+                    Analyzing results...
+                </div>
+            </div>
+
+            <p style="margin-top: 24px; color: #8890b0;">
+                Your results have been securely analyzed using advanced AI pattern recognition.<br>
+                Check the extension popup to apply personalized color correction filters.
+            </p>
+
+            <button id="close-btn" class="primary-btn">Close Window</button>
+            
+            <div class="ai-badge" style="margin-top: 24px;">
+                ✓ Analysis saved to Chrome Storage
+            </div>
+        </section>
+    </div>
+
+    <script type="module" src="diagnostic.js"></script>
+</body>
+
+</html>
+
+
