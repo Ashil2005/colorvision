@@ -68,22 +68,29 @@ export function evaluateD15(userOrder, correctOrder) {
     const safeOrder = Array.isArray(userOrder) ? userOrder.slice() : [];
     const expectedOrder = Array.isArray(correctOrder) ? correctOrder.slice() : [];
 
-    const errors = safeOrder.map((id, index) => {
-        const correctIndex = expectedOrder.indexOf(id);
-        return correctIndex === -1 ? expectedOrder.length : index - correctIndex;
+    // First cap is always correct - only evaluate movable caps (2-15)
+    const movableUserOrder = safeOrder.slice(1);
+    const movableExpectedOrder = expectedOrder.slice(1);
+
+    const errors = movableUserOrder.map((id, index) => {
+        const correctIndex = movableExpectedOrder.indexOf(id);
+        return correctIndex === -1 ? movableExpectedOrder.length : index - correctIndex;
     });
 
-    const classification = classifyD15(errors, safeOrder);
+    // Create errors array with first cap as 0 (always correct)
+    const fullErrors = safeOrder.length > 0 ? [0, ...errors] : [];
+
+    const classification = classifyD15(fullErrors, safeOrder);
     const absoluteErrors = errors.map((error) => Math.abs(error));
     const totalError = sum(absoluteErrors);
     const severity = getSeverity(totalError);
-    const confidence = safeOrder.length > 0
-        ? Math.max(0, 1 - (totalError / (safeOrder.length * 3)))
+    const confidence = movableUserOrder.length > 0
+        ? Math.max(0, 1 - (totalError / (movableUserOrder.length * 3)))
         : 0;
 
     return {
         type: classification.type,
-        errors,
+        errors: fullErrors,
         totalError,
         confidence,
         pass: classification.type === 'normal',

@@ -38,7 +38,45 @@ export function renderD15Board(container, order, options = {}) {
     const board = document.createElement('div');
     board.className = 'd15-caps caps-container';
 
-    order.forEach((capId) => {
+    // Separate first cap and movable caps
+    const fixedCap = order[0];
+    const movableCaps = order.slice(1);
+
+    // Render fixed cap
+    if (fixedCap) {
+        const cap = capMap.get(fixedCap);
+        if (cap) {
+            const capButton = document.createElement('button');
+            capButton.type = 'button';
+            capButton.className = 'd15-cap cap fixed-cap';
+            capButton.draggable = false;
+            capButton.dataset.capId = String(cap.id);
+            capButton.title = `Cap ${cap.id} (Fixed)`;
+            capButton.setAttribute('aria-label', `D-15 cap ${cap.id} - Fixed reference`);
+            capButton.style.background = cap.color;
+            capButton.style.borderColor = 'rgba(255, 255, 255, 0.35)';
+            capButton.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.25)';
+            capButton.style.cursor = 'default';
+            board.appendChild(capButton);
+        }
+    }
+
+    // Draggable divider
+    const divider = document.createElement('div');
+    divider.style.width = '2px';
+    divider.style.height = '80px';
+    divider.style.background = 'rgba(255, 255, 255, 0.2)';
+    divider.style.margin = '0 8px';
+    board.appendChild(divider);
+
+    // Render movable caps
+    const draggableContainer = document.createElement('div');
+    draggableContainer.className = 'draggable-caps';
+    draggableContainer.style.display = 'flex';
+    draggableContainer.style.gap = '12px';
+    draggableContainer.style.flexWrap = 'nowrap';
+
+    movableCaps.forEach((capId) => {
         const cap = capMap.get(capId);
         if (!cap) return;
 
@@ -81,11 +119,15 @@ export function renderD15Board(container, order, options = {}) {
                 return;
             }
 
-            onReorder(reorderCaps(order, droppedId, cap.id));
+            // Only reorder within movable caps
+            const movableOrder = reorderCaps(movableCaps, droppedId, cap.id);
+            const nextOrder = [fixedCap, ...movableOrder];
+            onReorder(nextOrder);
         });
 
-        board.appendChild(capButton);
+        draggableContainer.appendChild(capButton);
     });
 
+    board.appendChild(draggableContainer);
     container.appendChild(board);
 }
