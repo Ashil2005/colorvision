@@ -5,7 +5,8 @@
     "name": "Plate 1",
     "expected": "12",
     "description": "Everyone should see 12",
-    "confusionMapping": {}
+    "confusionMapping": {},
+    "image": "assets/plates/ishihara_1.jpg"
   },
   {
     "id": 2,
@@ -15,7 +16,8 @@
     "confusionMapping": {
       "Protan": "3",
       "Deutan": "3"
-    }
+    },
+    "image": "assets/plates/Ishihara_02.jpg"
   },
   {
     "id": 3,
@@ -25,7 +27,8 @@
     "confusionMapping": {
       "Protan": "70",
       "Deutan": "70"
-    }
+    },
+    "image": "assets/plates/Ishihara_03.jpg"
   },
   {
     "id": 4,
@@ -35,35 +38,95 @@
     "confusionMapping": {
       "Protan": "2",
       "Deutan": "2"
-    }
+    },
+    "image": "assets/plates/Ishihara_04.jpg"
   },
   {
     "id": 5,
     "category": "Red-Green",
     "name": "Plate 5",
+    "expected": "74",
+    "confusionMapping": {
+      "Protan": "21",
+      "Deutan": "21"
+    },
+    "image": "assets/plates/Ishihara_05.jpg"
+  },
+  {
+    "id": 6,
+    "category": "Red-Green",
+    "name": "Plate 6",
     "expected": "3",
     "confusionMapping": {
       "Protan": "5",
       "Deutan": "5"
-    }
-  },
-  {
-    "id": 6,
-    "category": "Red-Green-Diff",
-    "name": "Plate 6",
-    "expected": "26",
-    "confusionMapping": {
-      "Protan": "6",
-      "Deutan": "2"
-    }
+    },
+    "image": "assets/plates/Ishihara_06.jpg"
   },
   {
     "id": 7,
-    "category": "Blue-Yellow",
+    "category": "Red-Green",
     "name": "Plate 7",
-    "expected": "7",
+    "expected": "15",
     "confusionMapping": {
-      "Tritan": "X"
-    }
+      "Protan": "17",
+      "Deutan": "17"
+    },
+    "image": "assets/plates/Ishihara_07.jpg"
+  },
+  {
+    "id": 8,
+    "category": "Red-Green",
+    "name": "Plate 8",
+    "expected": "6",
+    "confusionMapping": {
+      "Protan": "X",
+      "Deutan": "X"
+    },
+    "image": "assets/plates/Ishihara_08.jpg"
+  },
+  {
+    "id": 9,
+    "category": "Red-Green",
+    "name": "Plate 9",
+    "expected": "97",
+    "confusionMapping": {
+      "Protan": "X",
+      "Deutan": "X"
+    },
+    "image": "assets/plates/Ishihara_09.jpg"
+  },
+  {
+    "id": 10,
+    "category": "Red-Green",
+    "name": "Plate 10",
+    "expected": "2",
+    "confusionMapping": {
+      "Protan": "X",
+      "Deutan": "X"
+    },
+    "image": "assets/plates/Ishihara_10.jpg"
+  },
+  {
+    "id": 11,
+    "category": "Red-Green",
+    "name": "Plate 11",
+    "expected": "45",
+    "confusionMapping": {
+      "Protan": "X",
+      "Deutan": "X"
+    },
+    "image": "assets/plates/Ishihara_11.jpg"
+  },
+  {
+    "id": 12,
+    "category": "Red-Green",
+    "name": "Plate 12",
+    "expected": "5",
+    "confusionMapping": {
+      "Protan": "X",
+      "Deutan": "X"
+    },
+    "image": "assets/plates/Ishihara_12.jpg"
   }
 ]

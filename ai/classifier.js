@@ -15,6 +15,11 @@ export class CVDClassifier {
    * @returns {Object} { type: string, confidence: number }
    */
   classify(plates, responses) {
+    if (!plates || !responses || responses.length === 0) {
+      console.warn('[VisionAI] classify() called with empty data:', { platesCount: plates?.length, responsesCount: responses?.length });
+      return { type: 'Normal', confidence: 0 };
+    }
+
     const scores = {
       Normal: 0,
       Protan: 0,
@@ -24,7 +29,10 @@ export class CVDClassifier {
 
     responses.forEach((res, index) => {
       const plate = plates.find(p => p.id === res.plateId);
-      if (!plate) return;
+      if (!plate) {
+        console.warn(`[VisionAI] Plate ID ${res.plateId} not found in plates array`);
+        return;
+      }
 
       if (res.answer === plate.expected) {
         scores.Normal += 1;
@@ -36,12 +44,17 @@ export class CVDClassifier {
           }
         }
       } else {
-        // General miss, lower weight towards the deficiency category
+        // General miss: we didn't recognise a specific confusion answer.
+        // Rather than rewarding both Red-Green deficiencies equally (which
+        // tended to produce tied zero scores) give a small score so the
+        // type selection logic has something to compare.  The value is
+        // intentionally tiny because we prefer to rely on the explicit
+        // confusionMapping entries when available.
         if (plate.category === 'Red-Green') {
-          scores.Protan += 0.5;
-          scores.Deutan += 0.5;
+          scores.Protan += 0.1;
+          scores.Deutan += 0.1;
         } else if (plate.category === 'Blue-Yellow') {
-          scores.Tritan += 1;
+          scores.Tritan += 0.1;
         }
       }
     });
@@ -53,21 +66,33 @@ export class CVDClassifier {
     // We give a slight bias toward finding a deficiency if misses are present
     const totalMisses = responses.filter(r => {
       const p = plates.find(pl => pl.id === r.plateId);
-      return r.answer !== p.expected;
+      return p && r.answer !== p.expected;
     }).length;
 
     if (totalMisses > 1) {
+      // pick the type with the highest score; if all scores are 0 or
+      // negative, we should stay "Normal" rather than bias toward the
+      // first entry (Protan).  This fixes the common issue where a user
+      // who simply guessed every plate would always be classified as
+      // Protan even though no confusion pattern was detected.
       for (const type of ['Protan', 'Deutan', 'Tritan']) {
         if (scores[type] > maxScore) {
           maxScore = scores[type];
           bestType = type;
         }
       }
+
+      if (maxScore <= 0) {
+        // no positive evidence for any deficiency
+        bestType = 'Normal';
+      }
     }
 
-    // Confidence calculation
-    const confidence = totalMisses === 0 ? 1.0 : Math.min(maxScore / (responses.length * 0.5), 1.0);
+    // --- Confidence calculation ---
+    const confidence = responses.length === 0 ? 1.0 : 
+                     (totalMisses === 0 ? 1.0 : Math.min(maxScore / (responses.length * 0.5), 1.0));
 
+    console.log(`[VisionAI] Classification result: type=${bestType}, confidence=${confidence.toFixed(2)}, misses=${totalMisses}/${responses.length}`);
     return { type: bestType, confidence };
   }
 }
