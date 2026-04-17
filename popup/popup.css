@@ -1,0 +1,268 @@
+:root {
+  --primary: #4f46e5;
+  --bg: #0f172a;
+  --card: #1e293b;
+  --text: #f8fafc;
+}
+
+body {
+  width: 350px;
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', system-ui, sans-serif;
+  margin: 0;
+  overflow: hidden;
+}
+
+.container {
+  padding: 1.5rem;
+}
+
+h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  background: linear-gradient(to right, #818cf8, #c084fc);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+p {
+  color: #94a3b8;
+  font-size: 0.875rem;
+}
+
+.screen {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  transition: opacity 0.3s;
+}
+
+.hidden {
+  display: none;
+  opacity: 0;
+}
+
+.primary-btn {
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+
+.primary-btn:active {
+  transform: scale(0.98);
+}
+
+.ishihara-plate {
+  width: 100%;
+  aspect-ratio: 1;
+  background: var(--card);
+  border-radius: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px dashed #334155;
+}
+
+.input-area {
+  display: flex;
+  gap: 0.5rem;
+}
+
+input {
+  flex: 1;
+  background: var(--card);
+  border: 1px solid #334155;
+  border-radius: 0.5rem;
+  padding: 0.5rem;
+  color: white;
+}
+
+.result-card,
+.control-card {
+  background: var(--card);
+  padding: 1rem;
+  border-radius: 0.75rem;
+  border: 1px solid #334155;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.flex-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Switch Style */
+.switch {
+  position: relative;
+  width: 40px;
+  height: 22px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider-round {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #334155;
+  transition: .4s;
+  border-radius: 34px;
+}
+
+.slider-round:before {
+  position: absolute;
+  content: "";
+  height: 16px;
+  width: 16px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
+}
+
+input:checked+.slider-round {
+  background-color: var(--primary);
+}
+
+input:checked+.slider-round:before {
+  transform: translateX(18px);
+}
+
+/* Range Slider */
+input[type=range] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  background: #334155;
+  border-radius: 3px;
+  outline: none;
+  margin: 10px 0;
+}
+
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  background: var(--primary);
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+/* Manual Selector */
+.manual-selector {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  background: var(--card);
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid #334155;
+}
+
+.radio-item {
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  cursor: pointer;
+  color: #cbd5e1;
+}
+
+.radio-item input {
+  margin: 0;
+  cursor: pointer;
+}
+
+/* Divider */
+.divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 0.5rem 0;
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid #334155;
+}
+
+.divider span {
+  padding: 0 0.75rem;
+  color: #475569;
+  font-size: 0.75rem;
+  font-weight: bold;
+}
+
+/* Badges */
+.badge {
+  background: #334155;
+  color: #94a3b8;
+  font-size: 0.65rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 800;
+}
+
+#status-badge {
+  align-self: flex-start;
+  background: #1e293b;
+  border: 1px solid #334155;
+  padding: 0.25rem 0.75rem;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  color: #818cf8;
+}
+
+.status-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.secondary-btn {
+  background: #334155;
+  color: white;
+  border: none;
+  padding: 0.6rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.secondary-btn:hover {
+  background: #475569;
+}
+
+.text-btn {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  text-decoration: underline;
+  align-self: center;
+  margin-top: 0.5rem;
+}

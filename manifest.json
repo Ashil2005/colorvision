@@ -1,0 +1,35 @@
+{
+    "manifest_version": 3,
+    "name": "AI-Assisted Color Vision Detection",
+    "version": "1.0",
+    "description": "Diagnostic tool and adaptive vision correction using AI logic.",
+    "action": {
+        "default_popup": "popup/popup.html",
+        "default_icon": "icons/icon128.png"
+    },
+    "permissions": [
+        "storage",
+        "activeTab",
+        "scripting"
+    ],
+    "content_scripts": [
+        {
+            "matches": [
+                "<all_urls>"
+            ],
+            "js": [
+                "content/injectFilter.js"
+            ]
+        }
+    ],
+    "web_accessible_resources": [
+        {
+            "resources": [
+                "filters/*.js"
+            ],
+            "matches": [
+                "<all_urls>"
+            ]
+        }
+    ]
+}
